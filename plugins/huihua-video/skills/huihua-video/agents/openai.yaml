@@ -1,6 +1,6 @@
 interface:
   display_name: "绘画视频总控"
-  short_description: "从文章到配音字幕动态插画与成片的完整绘画视频工作流"
+  short_description: "从文章到 MiniMax 配音、准确字幕、动态插画与成片"
   default_prompt: "使用 $huihua-video 把这篇文章制作成绘本式动态视频。"
 policy:
   allow_implicit_invocation: true

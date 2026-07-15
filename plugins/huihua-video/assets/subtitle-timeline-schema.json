@@ -1,13 +1,38 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["audio", "audio_sha256", "duration", "timing_source", "text_source", "items"],
+  "required": [
+    "audio",
+    "audio_sha256",
+    "duration",
+    "timing_source",
+    "text_source",
+    "provider",
+    "model",
+    "voice_id",
+    "native_subtitle",
+    "items"
+  ],
   "properties": {
     "audio": {"type": "string", "minLength": 1},
-    "audio_sha256": {"type": "string", "minLength": 8},
+    "audio_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "duration": {"type": "number", "exclusiveMinimum": 0},
-    "timing_source": {"const": "whisperx"},
+    "timing_source": {"const": "minimax_tts"},
     "text_source": {"const": "approved_narration"},
+    "provider": {"const": "MiniMax"},
+    "model": {"type": "string", "minLength": 1},
+    "voice_id": {"type": "string", "minLength": 1},
+    "native_subtitle": {
+      "type": "object",
+      "required": ["file", "sha256", "format", "cue_count"],
+      "properties": {
+        "file": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "format": {"enum": ["json", "srt", "vtt"]},
+        "cue_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
     "items": {
       "type": "array",
       "minItems": 1,
@@ -24,5 +49,6 @@
       }
     },
     "rhythm_points": {"type": "array"}
-  }
+  },
+  "additionalProperties": false
 }

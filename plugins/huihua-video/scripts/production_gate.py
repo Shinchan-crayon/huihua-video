@@ -75,10 +75,32 @@ def main() -> int:
     duration = timeline.get("duration")
     if not isinstance(duration, (int, float)) or duration <= 0:
         errors.append("subtitle timeline has invalid duration")
-    if timeline.get("timing_source") != "whisperx":
-        errors.append("timing_source must be whisperx")
+    if timeline.get("timing_source") != "minimax_tts":
+        errors.append("timing_source must be minimax_tts")
     if timeline.get("text_source") != "approved_narration":
         errors.append("text_source must be approved_narration")
+    if timeline.get("provider") != "MiniMax":
+        errors.append("subtitle timeline provider must be MiniMax")
+    if not timeline.get("model"):
+        errors.append("subtitle timeline has no MiniMax model")
+    if not timeline.get("voice_id"):
+        errors.append("subtitle timeline has no MiniMax voice_id")
+
+    native = timeline.get("native_subtitle")
+    if not isinstance(native, dict):
+        errors.append("native MiniMax subtitle metadata is missing")
+    else:
+        native_path = root / str(native.get("file", ""))
+        if not native_path.is_file():
+            errors.append(f"native MiniMax subtitle file does not exist: {native.get('file')}")
+        else:
+            native_digest = hashlib.sha256(native_path.read_bytes()).hexdigest()
+            if native_digest != native.get("sha256"):
+                errors.append("native MiniMax subtitle SHA-256 does not match timeline")
+        if native.get("format") not in {"json", "srt", "vtt"}:
+            errors.append("native MiniMax subtitle format must be json, srt or vtt")
+        if not isinstance(native.get("cue_count"), int) or native.get("cue_count") < 1:
+            errors.append("native MiniMax subtitle cue_count must be positive")
 
     audio_path = root / str(timeline.get("audio", ""))
     if not audio_path.is_file():

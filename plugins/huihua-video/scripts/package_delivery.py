@@ -15,6 +15,8 @@ TRANSIENT_NAMES = {
     "_preview",
     "_runtime",
     "contact-sheet",
+    "minimax-request.json",
+    "minimax-response.json",
     "preview-sheet",
 }
 
