@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频动效导演"
+  short_description: "设计线稿上色局部动作分层景深和符合叙事语义的镜头运动"
+  default_prompt: "使用 $huihua-motion-director 为这些插画场景设计动态效果。"
+policy:
+  allow_implicit_invocation: false

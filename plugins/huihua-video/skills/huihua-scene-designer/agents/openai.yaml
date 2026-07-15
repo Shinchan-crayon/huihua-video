@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频场景设计"
+  short_description: "把口播设计成连续发展的绘本叙事场景并定义构图和字幕安全区"
+  default_prompt: "使用 $huihua-scene-designer 根据口播和时间轴设计绘画场景。"
+policy:
+  allow_implicit_invocation: false

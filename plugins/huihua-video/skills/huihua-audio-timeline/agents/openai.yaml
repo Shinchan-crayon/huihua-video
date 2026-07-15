@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频音频时间轴"
+  short_description: "对齐最终音频和已确认口播并生成可靠字幕时间轴节奏点"
+  default_prompt: "使用 $huihua-audio-timeline 为这份最终音频生成字幕时间轴。"
+policy:
+  allow_implicit_invocation: false

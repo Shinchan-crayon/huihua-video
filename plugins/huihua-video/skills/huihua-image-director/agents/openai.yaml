@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频插画导演"
+  short_description: "生成完整叙事插画提示词并记录角色一致性和真实图片尺寸"
+  default_prompt: "使用 $huihua-image-director 为这些场景生成完整插画方案。"
+policy:
+  allow_implicit_invocation: false

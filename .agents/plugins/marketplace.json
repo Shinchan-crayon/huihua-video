@@ -1,0 +1,20 @@
+{
+  "name": "huihua-video",
+  "interface": {
+    "displayName": "绘画视频工作流"
+  },
+  "plugins": [
+    {
+      "name": "huihua-video",
+      "source": {
+        "source": "local",
+        "path": "./plugins/huihua-video"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creative Tools"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Huihua Video Workflow State",
+  "type": "object",
+  "required": ["workflow_id", "stage", "status", "artifacts", "updated_at"],
+  "properties": {
+    "workflow_id": {"type": "string", "minLength": 1},
+    "stage": {
+      "enum": ["intake", "script", "audio_timeline", "scene_design", "image_production", "motion_design", "review", "render", "qa", "completed"]
+    },
+    "status": {"enum": ["IN_PROGRESS", "WAITING_CONFIRMATION", "BLOCKED", "COMPLETED"]},
+    "artifacts": {"type": "object"},
+    "invalidated_artifacts": {"type": "array", "items": {"type": "string"}},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "updated_at": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

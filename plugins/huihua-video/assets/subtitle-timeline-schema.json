@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["audio", "audio_sha256", "duration", "timing_source", "text_source", "items"],
+  "properties": {
+    "audio": {"type": "string", "minLength": 1},
+    "audio_sha256": {"type": "string", "minLength": 8},
+    "duration": {"type": "number", "exclusiveMinimum": 0},
+    "timing_source": {"const": "whisperx"},
+    "text_source": {"const": "approved_narration"},
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "sentence_id", "start", "end", "text"],
+        "properties": {
+          "id": {"type": "string"},
+          "sentence_id": {"type": "string"},
+          "start": {"type": "number", "minimum": 0},
+          "end": {"type": "number", "exclusiveMinimum": 0},
+          "text": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "rhythm_points": {"type": "array"}
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "huihua-video",
+  "version": "0.1.0",
+  "description": "将文章或口播文案制作成带配音、逐句字幕和绘本式动态插画的 Remotion 视频。",
+  "author": {
+    "name": "ThinkAI",
+    "url": "https://www.thinkai.tv"
+  },
+  "repository": "https://github.com/Shinchan-crayon/huihua-video",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "绘画视频",
+    "shortDescription": "从文章到配音、字幕、动态插画与成片的绘画视频工作流",
+    "longDescription": "根据文章或口播文案规划叙事场景，生成完整插画，按最终音频建立字幕时间轴，并使用 Remotion 制作线稿显现、上色、分层景深和镜头运动。",
+    "developerName": "ThinkAI",
+    "category": "Creative Tools",
+    "capabilities": [
+      "Illustrated video",
+      "Audio timeline",
+      "Remotion rendering"
+    ],
+    "defaultPrompt": [
+      "使用 $huihua-video 把这篇文章制作成绘本式动态视频。",
+      "使用 $huihua-video 根据这段口播和音频生成绘画视频。",
+      "使用 $huihua-video 检查并继续这个绘画视频项目。"
+    ],
+    "brandColor": "#E95E4F",
+    "composerIcon": "./assets/plugin-icon.png",
+    "logo": "./assets/plugin-icon.png"
+  }
+}

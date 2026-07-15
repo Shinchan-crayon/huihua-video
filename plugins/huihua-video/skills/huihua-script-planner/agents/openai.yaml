@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频口播规划"
+  short_description: "把文章整理成自然口播叙事结构和可直接绘制的完整语义节拍"
+  default_prompt: "使用 $huihua-script-planner 整理这篇文章的口播和叙事节拍。"
+policy:
+  allow_implicit_invocation: false

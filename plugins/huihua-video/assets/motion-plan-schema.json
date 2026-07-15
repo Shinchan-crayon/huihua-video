@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["scenes"],
+  "properties": {
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "line_reveal", "color_reveal", "object_beats", "camera", "parallax", "text_beats", "transition"],
+        "properties": {
+          "scene_id": {"type": "string"},
+          "line_reveal": {"type": "object"},
+          "color_reveal": {"type": "object"},
+          "object_beats": {"type": "array"},
+          "camera": {"type": "object"},
+          "parallax": {"type": "object"},
+          "text_beats": {"type": "array"},
+          "transition": {"type": "object"}
+        }
+      }
+    }
+  }
+}

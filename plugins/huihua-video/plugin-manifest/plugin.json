@@ -1,0 +1,15 @@
+{
+  "name": "huihua-video",
+  "version": "0.1.0",
+  "description": "将文章或口播文案制作成带配音、逐句字幕和绘本式动态插画的 Remotion 视频。",
+  "skills": [
+    "skills/huihua-video",
+    "skills/huihua-script-planner",
+    "skills/huihua-audio-timeline",
+    "skills/huihua-scene-designer",
+    "skills/huihua-image-director",
+    "skills/huihua-motion-director",
+    "skills/huihua-remotion-renderer"
+  ],
+  "entry_skill": "skills/huihua-video"
+}
