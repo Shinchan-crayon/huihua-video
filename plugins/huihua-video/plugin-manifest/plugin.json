@@ -1,15 +1,15 @@
 {
   "name": "huihua-video",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "将文章或口播文案制作成可选古风或卡通手绘、双 TTS 配音、准确字幕和绘本式动态插画的独立 Remotion 视频工作流。",
   "skills": [
-    "skills/huihua-video",
-    "skills/huihua-script-planner",
-    "skills/huihua-audio-timeline",
-    "skills/huihua-scene-designer",
-    "skills/huihua-image-director",
-    "skills/huihua-motion-director",
-    "skills/huihua-remotion-renderer"
+    "skills/00-huihua-video",
+    "skills/10-huihua-script-planner",
+    "skills/20-huihua-audio-timeline",
+    "skills/30-huihua-scene-designer",
+    "skills/40-huihua-image-director",
+    "skills/50-huihua-motion-director",
+    "skills/60-huihua-remotion-renderer"
   ],
-  "entry_skill": "skills/huihua-video"
+  "entry_skill": "skills/00-huihua-video"
 }

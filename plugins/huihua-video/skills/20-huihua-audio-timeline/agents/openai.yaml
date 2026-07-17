@@ -1,0 +1,6 @@
+interface:
+  display_name: "绘画视频音频时间轴"
+  short_description: "使用已选 MiniMax 或 Doubao 生成口播、原生字幕时间轴和节奏点"
+  default_prompt: "使用 $huihua-audio-timeline 和已选择的音频模型，为已确认口播生成音频和原生字幕时间轴。"
+policy:
+  allow_implicit_invocation: false

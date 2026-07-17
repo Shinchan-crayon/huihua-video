@@ -1,6 +1,6 @@
 {
   "name": "huihua-video",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "将文章或口播文案制作成可选古风或卡通手绘、双 TTS 配音、准确字幕和绘本式动态插画的独立 Remotion 视频工作流。",
   "author": {
     "name": "ThinkAI",
@@ -21,7 +21,7 @@
     ],
     "defaultPrompt": [
       "使用 $huihua-video 把这篇文章制作成绘本式动态视频。",
-      "使用 $huihua-video 根据这段口播生成 MiniMax 配音和绘画视频。",
+      "使用 $huihua-video 根据这段口播，用已选择的音频模型生成配音和绘画视频。",
       "使用 $huihua-video 检查并继续这个绘画视频项目。"
     ],
     "brandColor": "#E95E4F",

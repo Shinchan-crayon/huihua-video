@@ -1,5 +1,5 @@
 interface:
-  display_name: "绘画视频总控"
+  display_name: "绘画视频总控（主入口）"
   short_description: "从文章到双 TTS 配音、准确字幕、动态插画与成片"
   default_prompt: "使用 $huihua-video 把这篇文章制作成绘本式动态视频。"
 policy:
