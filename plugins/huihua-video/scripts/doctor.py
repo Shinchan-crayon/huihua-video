@@ -9,6 +9,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from project_boundary import PRODUCT_ID, RUNTIME_NAMESPACE
+
 
 def config_dir() -> Path:
     override = os.environ.get("HUIHUA_VIDEO_CONFIG_DIR", "").strip()
@@ -101,6 +103,11 @@ def main() -> int:
         "audio_configuration": audio,
         "minimax_configuration": minimax_check(),
         "image_prompt_generator": image_prompt_generator_check(),
+        "product_boundary": {
+            "product_id": PRODUCT_ID,
+            "runtime_namespace": RUNTIME_NAMESPACE,
+            "config_dir": str(config_dir()),
+        },
     }
     required = ("node", "npm", "ffmpeg", "ffprobe", "python")
     missing = [name for name in required if not checks[name]]
@@ -116,6 +123,7 @@ def main() -> int:
             "Configure MiniMax with scripts/configure_minimax.py or Doubao with scripts/configure_volcengine.py.",
             "Save an exact default voice_id after auditioning the selected provider voice library.",
             "Illustration prompts and paid generation approvals are handled by $image-prompt-generator.",
+            "huihua-video does not share project state, runtime files, templates, or configuration with Shin-video.",
         ],
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))

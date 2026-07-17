@@ -2,7 +2,7 @@
 
 把文章或口播文案制作成带可选手绘风格、MiniMax 或 Doubao 配音、准确字幕、绘本式动态插画和 Remotion 渲染成片的 Codex 插件。
 
-当前版本：`0.3.0`
+当前版本：`0.3.1`
 
 ## 它能做什么
 
@@ -71,6 +71,8 @@ plugins/huihua-video/
 
 ## 能力边界
 
+- `huihua-video` 与 `Shin-video` 是两个独立产品；不共享 Skill、配置、模板、状态、缓存或运行产物。
+- 项目状态固定标记 `product_id: "huihua-video"`，中间产物只写入项目内 `.huihua-video-runtime/`。
 - 服务商原生字幕只提供时间，不改写字幕正文。
 - MiniMax 或 Doubao 未返回有效原生字幕文件时立即停止，不估算时间。
 - 图片必须经过 `$image-prompt-generator` 的 Prompt 审核与生图批准流程。

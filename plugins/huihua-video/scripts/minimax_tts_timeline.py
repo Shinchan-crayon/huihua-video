@@ -20,6 +20,14 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from project_boundary import (
+    BoundaryViolation,
+    load_project_state,
+    resolve_project_asset,
+    runtime_dir,
+    validate_project_root,
+)
+
 
 TIMESTAMP = re.compile(
     r"(?P<start>\d{1,2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*"
@@ -513,12 +521,19 @@ def main() -> int:
     if args.leading_silence_seconds < 0:
         raise SystemExit("--leading-silence-seconds 不能小于 0。")
 
+    try:
+        project = validate_project_root(args.project_dir)
+        load_project_state(project)
+        narration_path = resolve_project_asset(project, args.narration, "narration.json")
+    except BoundaryViolation as exc:
+        raise SystemExit(f"MiniMax 音频时间轴生成失败：{exc}") from exc
     config = load_config()
-    narration = load_narration(args.narration)
-    project = args.project_dir.resolve()
+    narration = load_narration(narration_path)
     project.mkdir(parents=True, exist_ok=True)
+    transient_dir = runtime_dir(project)
+    transient_dir.mkdir(parents=True, exist_ok=True)
     payload = build_payload(config, narration["full_text"])
-    request_path = project / "minimax-request.json"
+    request_path = transient_dir / "minimax-request.json"
     write_json(request_path, {"api_url": config["api_url"], "payload": payload})
     if args.dry_run:
         print(json.dumps({"status": "dry_run", "request": str(request_path)}, ensure_ascii=False))
@@ -526,7 +541,7 @@ def main() -> int:
 
     try:
         response = post_json(config["api_url"], config["api_key"], payload)
-        write_json(project / "minimax-response.json", sanitize(response))
+        write_json(transient_dir / "minimax-response.json", sanitize(response))
         audio = extract_audio(response)
         if not audio:
             raise RuntimeError("MiniMax 返回了空音频。")
@@ -540,7 +555,7 @@ def main() -> int:
         native_path = project / "minimax-subtitles.json"
         native_path.write_bytes(download_https(subtitle_url(response), "text/*,application/json"))
         timeline = build_timeline(
-            narration_path=args.narration,
+            narration_path=narration_path,
             audio_path=audio_path,
             subtitle_path=native_path,
             output_path=project / "subtitle-timeline.json",

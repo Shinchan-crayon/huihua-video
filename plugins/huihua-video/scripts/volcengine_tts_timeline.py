@@ -26,6 +26,13 @@ from minimax_tts_timeline import (
     rhythm_points,
     write_json,
 )
+from project_boundary import (
+    BoundaryViolation,
+    load_project_state,
+    resolve_project_asset,
+    runtime_dir,
+    validate_project_root,
+)
 
 
 EVENT_SEPARATOR = re.compile(r"\r?\n\r?\n")
@@ -249,19 +256,27 @@ def main() -> int:
     if args.leading_silence_seconds < 0:
         raise SystemExit("--leading-silence-seconds 不能小于 0。")
 
+    try:
+        project = validate_project_root(args.project_dir)
+        load_project_state(project)
+        narration_path = resolve_project_asset(project, args.narration, "narration.json")
+    except BoundaryViolation as exc:
+        raise SystemExit(f"Doubao 音频时间轴生成失败：{exc}") from exc
     config = load_config()
-    narration = load_narration(args.narration)
-    project = args.project_dir.resolve()
+    narration = load_narration(narration_path)
     project.mkdir(parents=True, exist_ok=True)
+    transient_dir = runtime_dir(project)
+    transient_dir.mkdir(parents=True, exist_ok=True)
     request_preview = {
         "api_url": config["api_url"],
         "resource_id": config["resource_id"],
         "voice_id": config["voice_id"],
         "subtitle_enabled": True,
     }
-    write_json(project / "volcengine-request.json", request_preview)
+    request_path = transient_dir / "volcengine-request.json"
+    write_json(request_path, request_preview)
     if args.dry_run:
-        print(json.dumps({"status": "dry_run", "request": str(project / "volcengine-request.json")}, ensure_ascii=False))
+        print(json.dumps({"status": "dry_run", "request": str(request_path)}, ensure_ascii=False))
         return 0
 
     try:
@@ -289,7 +304,7 @@ def main() -> int:
             elif event == 153:
                 message = redact_secret(str(payload.get("message") or "Doubao 音频生成失败"), str(config["api_key"]))
                 raise RuntimeError(message)
-        write_json(project / "volcengine-response.json", {"events": safe_events})
+        write_json(transient_dir / "volcengine-response.json", {"events": safe_events})
         if not completed:
             raise RuntimeError("Doubao 事件流缺少完成帧。")
         if not audio_chunks:

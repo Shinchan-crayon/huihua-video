@@ -8,12 +8,19 @@ import pathlib
 import subprocess
 import sys
 
+from project_boundary import BoundaryViolation, resolve_project_asset, validate_project_root
+
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print("Usage: probe_image.py <image>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print("Usage: probe_image.py <project-dir> <image>", file=sys.stderr)
         return 2
-    image = pathlib.Path(sys.argv[1]).resolve()
+    try:
+        project = validate_project_root(pathlib.Path(sys.argv[1]))
+        image = resolve_project_asset(project, sys.argv[2], "image")
+    except BoundaryViolation as exc:
+        print(f"Refusing image probe: {exc}", file=sys.stderr)
+        return 1
     if not image.is_file():
         print(f"Image does not exist: {image}", file=sys.stderr)
         return 1
@@ -37,7 +44,7 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "file": str(image),
+                "file": str(image.relative_to(project)),
                 "width": width,
                 "height": height,
                 "aspect_ratio": width / height,

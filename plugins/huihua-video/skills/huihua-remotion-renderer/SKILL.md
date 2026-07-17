@@ -1,9 +1,13 @@
 ---
 name: huihua-remotion-renderer
-description: 校验绘画视频生产产物，使用自适应 Remotion 模板渲染，并完成音画与交付检查。
+description: 校验独立的 huihua-video 项目，使用自带 Remotion 模板渲染，并完成音画与交付检查。
 ---
 
 # 绘画视频 Remotion 渲染
+
+## 产品边界
+
+仅渲染 `workflow-state.json.product_id == "huihua-video"` 且 `runtime_namespace == ".huihua-video-runtime"` 的项目。身份不匹配时立即停止。
 
 ## 输入
 
@@ -12,8 +16,8 @@ description: 校验绘画视频生产产物，使用自适应 Remotion 模板渲
 ## 执行
 
 1. 运行 `../../scripts/production_gate.py <project-dir>`。
-2. 将模板 `../../templates/Remotion绘画视频模板` 复制到项目运行目录。
-3. 把插画、线稿、音频和 JSON 复制到模板 `public/runtime`。
+2. 将模板 `../../templates/Remotion绘画视频模板` 复制到 `<project>/.huihua-video-runtime/remotion/`。
+3. 把当前项目内的插画、线稿、音频和 JSON 复制到该模板的 `public/runtime`。
 4. 安装依赖并运行模板的渲染命令。
 5. 使用 FFprobe 检查分辨率、时长、帧率和音轨。
 6. 抽取代表帧检查字幕安全区、图片完整显示和空白帧。
@@ -28,6 +32,7 @@ description: 校验绘画视频生产产物，使用自适应 Remotion 模板渲
 - 图片使用 `contain`，不能为了填满画布裁切。
 - 转场不得缩短字幕或场景的有效时长。
 - 不在组件中写死用户绝对路径。
+- 不调用 Shin-video 模板、Skill 或 `.shin-video-runtime`，也不接受项目目录之外的资产。
 
 ## 完成标准
 

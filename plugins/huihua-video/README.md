@@ -2,7 +2,7 @@
 
 面向 Codex 的文章转绘本式动态视频工作流。输入文章或口播文案后，工作流会先确认手绘风格和音频模型，再完成口播规划、配音、原生字幕时间轴、插画场景、动态设计、Remotion 渲染和成片检查。
 
-当前版本：`0.3.0`
+当前版本：`0.3.1`
 
 ## 能解决什么问题
 
@@ -32,6 +32,12 @@
 → Remotion 渲染
 → 音画检查
 ```
+
+## 与 Shin-video 的边界
+
+`huihua-video` 和 `Shin-video` 是两个独立产品，不是同一工作流的两个名字或模式。安装 `huihua-video` 不会调用 `$shin-video-*`，也不会读取或写入 Shin-video 仓库、`.shin-video-runtime`、配置、模板和历史产物。
+
+`huihua-video` 的用户配置固定在 `~/.config/huihua-video`，项目身份固定为 `product_id: "huihua-video"`，所有中间产物固定在当前项目的 `.huihua-video-runtime/`。生产门禁会拒绝跨产品路径和项目目录之外的资产。
 
 ## Skill 组成
 
@@ -63,6 +69,14 @@
 
 ```bash
 python3 scripts/doctor.py
+```
+
+初始化每条新视频的独立项目：
+
+```bash
+python3 scripts/initialize_huihua_project.py \
+  --project-dir /absolute/path/to/project \
+  --workflow-id video-topic
 ```
 
 ## 首次配置
@@ -119,6 +133,12 @@ codex plugin add huihua-video@huihua-video
 ```
 
 临时帧、线稿缓存、预览图和渲染缓存可在制作过程中保留，交付成功后由清理工具删除。
+
+制作期间的中间产物统一位于：
+
+```text
+日期/视频标题/.huihua-video-runtime/
+```
 
 ## 质量边界
 

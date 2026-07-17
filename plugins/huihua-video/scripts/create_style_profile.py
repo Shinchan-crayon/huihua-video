@@ -8,6 +8,8 @@ import json
 import re
 from pathlib import Path
 
+from project_boundary import BoundaryViolation, load_project_state, runtime_dir, validate_project_root
+
 
 ASPECT_RATIO = re.compile(r"^(?P<width>[1-9]\d*):(?P<height>[1-9]\d*)$")
 
@@ -60,8 +62,13 @@ def main() -> int:
         style_name = preset["style_name"]
         prompt_profile = preset["prompt_profile"]
 
-    project = args.project_dir.resolve()
+    try:
+        project = validate_project_root(args.project_dir)
+        load_project_state(project)
+    except BoundaryViolation as exc:
+        raise SystemExit(f"无法创建 huihua-video 风格档案：{exc}") from exc
     project.mkdir(parents=True, exist_ok=True)
+    runtime_dir(project).mkdir(parents=True, exist_ok=True)
     output = project / "style-profile.json"
     output.write_text(
         json.dumps(

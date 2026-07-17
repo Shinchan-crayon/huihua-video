@@ -9,6 +9,13 @@ import pathlib
 import sys
 from typing import Any
 
+from project_boundary import (
+    BoundaryViolation,
+    resolve_project_asset,
+    validate_project_root,
+    validate_state_identity,
+)
+
 
 REQUIRED_JSON = {
     "workflow-state.json",
@@ -37,8 +44,13 @@ def main() -> int:
     if len(sys.argv) != 2:
         print("Usage: production_gate.py <project-dir>", file=sys.stderr)
         return 2
-    root = pathlib.Path(sys.argv[1]).resolve()
     errors: list[str] = []
+    try:
+        root = validate_project_root(pathlib.Path(sys.argv[1]))
+    except BoundaryViolation as exc:
+        result = {"ok": False, "errors": [str(exc)]}
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1
     missing = sorted(name for name in REQUIRED_JSON if not (root / name).is_file())
     errors.extend(f"missing required file: {name}" for name in missing)
     if missing:
@@ -52,6 +64,7 @@ def main() -> int:
     images_doc = load(root / "image-manifest.json")
     motion_doc = load(root / "motion-plan.json")
     style_profile = load(root / "style-profile.json")
+    errors.extend(validate_state_identity(state))
 
     if narration.get("approved") is not True:
         errors.append("narration.json is not approved")
@@ -97,10 +110,14 @@ def main() -> int:
     if not isinstance(native, dict):
         errors.append("native provider subtitle metadata is missing")
     else:
-        native_path = root / str(native.get("file", ""))
-        if not native_path.is_file():
+        try:
+            native_path = resolve_project_asset(root, native.get("file"), "native provider subtitle")
+        except BoundaryViolation as exc:
+            errors.append(str(exc))
+            native_path = None
+        if native_path is not None and not native_path.is_file():
             errors.append(f"native provider subtitle file does not exist: {native.get('file')}")
-        else:
+        elif native_path is not None:
             native_digest = hashlib.sha256(native_path.read_bytes()).hexdigest()
             if native_digest != native.get("sha256"):
                 errors.append("native provider subtitle SHA-256 does not match timeline")
@@ -109,10 +126,14 @@ def main() -> int:
         if not isinstance(native.get("cue_count"), int) or native.get("cue_count") < 1:
             errors.append("native provider subtitle cue_count must be positive")
 
-    audio_path = root / str(timeline.get("audio", ""))
-    if not audio_path.is_file():
+    try:
+        audio_path = resolve_project_asset(root, timeline.get("audio"), "audio file")
+    except BoundaryViolation as exc:
+        errors.append(str(exc))
+        audio_path = None
+    if audio_path is not None and not audio_path.is_file():
         errors.append(f"audio file does not exist: {timeline.get('audio')}")
-    else:
+    elif audio_path is not None:
         digest = hashlib.sha256(audio_path.read_bytes()).hexdigest()
         if digest != timeline.get("audio_sha256"):
             errors.append("audio SHA-256 does not match subtitle timeline")
@@ -143,7 +164,12 @@ def main() -> int:
             errors.append(f"image prompt has no explicit selected aspect ratio: {image.get('id')}")
         if not isinstance(image.get("width"), int) or not isinstance(image.get("height"), int):
             errors.append(f"image dimensions missing: {image.get('id')}")
-        if not (root / str(image.get("file", ""))).is_file():
+        try:
+            image_path = resolve_project_asset(root, image.get("file"), f"image file {image.get('id')}")
+        except BoundaryViolation as exc:
+            errors.append(str(exc))
+            image_path = None
+        if image_path is not None and not image_path.is_file():
             errors.append(f"image file does not exist: {image.get('file')}")
         if image.get("role") == "color":
             color_scene_ids.add(image.get("scene_id"))

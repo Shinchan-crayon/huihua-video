@@ -7,13 +7,23 @@ import pathlib
 import subprocess
 import sys
 
+from project_boundary import BoundaryViolation, resolve_project_asset, validate_project_root
+
 
 def main() -> int:
-    if len(sys.argv) != 3:
-        print("Usage: extract_line_art.py <color-image> <line-image>", file=sys.stderr)
+    if len(sys.argv) != 4:
+        print(
+            "Usage: extract_line_art.py <project-dir> <color-image> <line-image>",
+            file=sys.stderr,
+        )
         return 2
-    source = pathlib.Path(sys.argv[1]).resolve()
-    target = pathlib.Path(sys.argv[2]).resolve()
+    try:
+        project = validate_project_root(pathlib.Path(sys.argv[1]))
+        source = resolve_project_asset(project, sys.argv[2], "color image")
+        target = resolve_project_asset(project, sys.argv[3], "line image")
+    except BoundaryViolation as exc:
+        print(f"Refusing line-art extraction: {exc}", file=sys.stderr)
+        return 1
     if not source.is_file():
         print(f"Source image does not exist: {source}", file=sys.stderr)
         return 1

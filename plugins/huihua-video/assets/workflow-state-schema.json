@@ -2,8 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Huihua Video Workflow State",
   "type": "object",
-  "required": ["workflow_id", "stage", "status", "artifacts", "updated_at"],
+  "required": ["product_id", "runtime_namespace", "workflow_id", "stage", "status", "artifacts", "updated_at"],
   "properties": {
+    "product_id": {"const": "huihua-video"},
+    "runtime_namespace": {"const": ".huihua-video-runtime"},
     "workflow_id": {"type": "string", "minLength": 1},
     "stage": {
       "enum": ["intake", "script", "audio_timeline", "scene_design", "image_production", "motion_design", "review", "render", "qa", "completed"]
