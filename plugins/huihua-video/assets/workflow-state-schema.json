@@ -10,6 +10,14 @@
     },
     "status": {"enum": ["IN_PROGRESS", "WAITING_CONFIRMATION", "BLOCKED", "COMPLETED"]},
     "artifacts": {"type": "object"},
+    "style_selection": {
+      "type": "object",
+      "properties": {
+        "style_id": {"type": "string", "minLength": 1},
+        "style_profile": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
     "invalidated_artifacts": {"type": "array", "items": {"type": "string"}},
     "blockers": {"type": "array", "items": {"type": "string"}},
     "updated_at": {"type": "string", "minLength": 1}

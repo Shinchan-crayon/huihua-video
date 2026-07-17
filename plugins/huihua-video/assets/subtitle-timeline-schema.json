@@ -17,19 +17,21 @@
     "audio": {"type": "string", "minLength": 1},
     "audio_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "duration": {"type": "number", "exclusiveMinimum": 0},
-    "timing_source": {"const": "minimax_tts"},
+    "timing_source": {"enum": ["minimax_tts", "volcengine_tts"]},
     "text_source": {"const": "approved_narration"},
-    "provider": {"const": "MiniMax"},
+    "provider": {"enum": ["MiniMax", "Doubao-语音合成-2.0"]},
     "model": {"type": "string", "minLength": 1},
     "voice_id": {"type": "string", "minLength": 1},
+    "leading_silence_seconds": {"type": "number", "minimum": 0},
     "native_subtitle": {
       "type": "object",
       "required": ["file", "sha256", "format", "cue_count"],
       "properties": {
         "file": {"type": "string", "minLength": 1},
-        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "format": {"enum": ["json", "srt", "vtt"]},
-        "cue_count": {"type": "integer", "minimum": 1}
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "format": {"enum": ["json", "srt", "vtt"]},
+          "cue_count": {"type": "integer", "minimum": 1},
+          "time_offset_seconds": {"type": "number", "minimum": 0}
       },
       "additionalProperties": false
     },

@@ -1,9 +1,13 @@
 # 绘画视频
 
-面向 Codex 的文章转绘本式动态视频工作流。输入文章或口播文案后，工作流会完成口播规划、MiniMax 配音、原生字幕时间轴、插画场景、动态设计、Remotion 渲染和成片检查。
+面向 Codex 的文章转绘本式动态视频工作流。输入文章或口播文案后，工作流会先确认手绘风格和音频模型，再完成口播规划、配音、原生字幕时间轴、插画场景、动态设计、Remotion 渲染和成片检查。
+
+当前版本：`0.3.0`
 
 ## 能解决什么问题
 
+- 在每条视频开始前选择古风手绘、卡通手绘，或描述自定义手绘方向。
+- 使用 MiniMax `speech-2.8-hd` 或 Doubao `seed-tts-2.0` 配音，并保存用户选择的默认音色。
 - 把文章压缩成适合短视频的口播文案。
 - 为每个叙事段落设计完整插画，而不是重复使用卡片模板。
 - 让线稿、上色、人物、道具和镜头运动在同一幅画中逐步发生。
@@ -14,9 +18,12 @@
 
 ```text
 文章或口播
+→ 选择手绘风格
+→ 选择与配置音频模型
+→ 配置 Image Prompt Generator 默认生图模型
 → 口播规划
-→ MiniMax 最终音频
-→ MiniMax 原生字幕时间轴
+→ 最终音频
+→ 服务商原生字幕时间轴
 → 绘画场景
 → Image Prompt Generator 插画
 → 线稿与图层素材
@@ -32,7 +39,7 @@
 | --- | --- |
 | `huihua-video` | 唯一公开入口，维护状态并编排完整流程 |
 | `huihua-script-planner` | 整理文章并生成可确认的口播与叙事节拍 |
-| `huihua-audio-timeline` | 使用 MiniMax 生成最终音频和原生字幕时间轴 |
+| `huihua-audio-timeline` | 使用已选 MiniMax 或 Doubao 生成最终音频和原生字幕时间轴 |
 | `huihua-scene-designer` | 将口播拆成连续发展的绘画场景 |
 | `huihua-image-director` | 调用 `$image-prompt-generator` 规划并生成完整插画 |
 | `huihua-motion-director` | 设计线稿、上色、分层、局部动作和镜头运动 |
@@ -42,8 +49,8 @@
 
 - Node.js 20 或更高版本
 - FFmpeg 与 FFprobe
-- MiniMax API Key
-- 从 https://www.minimaxi.com/audio/voices 试听并复制的完整 `voice_id`
+- MiniMax API Key 或火山引擎 API Key
+- 从音色库试听并复制的完整 `voice_id`
 - 已安装的 `$image-prompt-generator`
 
 尚未安装图片工作流时，在 Codex 中安装：
@@ -60,15 +67,27 @@ python3 scripts/doctor.py
 
 ## 首次配置
 
-当前音频只支持 MiniMax。首次使用运行：
+首次使用会先选择本条视频的手绘风格与画面比例，再选择音频模型：
+
+1. `minimax-speech-2.8-hd`：打开 https://www.minimaxi.com/audio/voices，选择音色并设置默认 `voice_id`。
+2. `Doubao-语音合成-2.0`：打开 https://console.volcengine.com/ark/region:cn-beijing/experience/voice?model=doubao-seed-tts-2-0，选择音色并设置默认 `voice_id`。
+3. 其他：收集服务商与原生时间戳协议；未完成适配前不会开始渲染。
+
+MiniMax 配置命令：
 
 ```bash
 python3 scripts/configure_minimax.py
 ```
 
-脚本会通过隐藏输入接收 API Key，然后引导你打开 https://www.minimaxi.com/audio/voices 试听音色并粘贴完整 `voice_id`。API Key 保存到用户配置目录，不会写入视频项目或 Git。
+Doubao 配置命令：
 
-绘画场景的图片规划、提示词审核和受控生图统一调用 `$image-prompt-generator`。第一次实际生图时，按照该 Skill 的引导配置图片渠道；图片渠道使用自己的密钥，不复用 MiniMax API Key。
+```bash
+python3 scripts/configure_volcengine.py
+```
+
+配置脚本通过隐藏输入接收 API Key，保存默认 `voice_id` 到用户配置目录，不会写入视频项目或 Git。
+
+绘画场景的图片规划、提示词审核和受控生图统一调用 `$image-prompt-generator`。完成音频选择后，按照该 Skill 的引导配置图片渠道并设置默认生图模型；图片渠道使用自己的密钥，不复用音频模型 API Key。
 
 ## GitHub 安装
 
@@ -90,7 +109,8 @@ codex plugin add huihua-video@huihua-video
 ├── 视频标题.mp4
 ├── 口播文案.md
 ├── workflow-state.json
-├── minimax-subtitles.json
+├── style-profile.json
+├── minimax-subtitles.json 或 volcengine-subtitles.json
 ├── subtitle-timeline.json
 ├── scene-manifest.json
 ├── image-manifest.json
@@ -102,8 +122,8 @@ codex plugin add huihua-video@huihua-video
 
 ## 质量边界
 
-- MiniMax 原生字幕只提供时间，不改写字幕正文。
-- MiniMax 未返回有效原生字幕文件时立即停止，不估算时间。
+- 服务商原生字幕只提供时间，不改写字幕正文。
+- MiniMax 或 Doubao 未返回有效原生字幕时间戳时立即停止，不估算时间。
 - 图片必须经过 `$image-prompt-generator` 的 Prompt 审核与生图批准流程。
 - 主画面负责解释和叙事，不重复整句字幕。
 - 禁止为了“有动态”添加抖动、噪点或无意义漂移。

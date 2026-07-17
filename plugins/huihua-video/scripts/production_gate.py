@@ -17,6 +17,7 @@ REQUIRED_JSON = {
     "scene-manifest.json",
     "image-manifest.json",
     "motion-plan.json",
+    "style-profile.json",
 }
 
 
@@ -50,6 +51,7 @@ def main() -> int:
     scenes_doc = load(root / "scene-manifest.json")
     images_doc = load(root / "image-manifest.json")
     motion_doc = load(root / "motion-plan.json")
+    style_profile = load(root / "style-profile.json")
 
     if narration.get("approved") is not True:
         errors.append("narration.json is not approved")
@@ -75,32 +77,37 @@ def main() -> int:
     duration = timeline.get("duration")
     if not isinstance(duration, (int, float)) or duration <= 0:
         errors.append("subtitle timeline has invalid duration")
-    if timeline.get("timing_source") != "minimax_tts":
-        errors.append("timing_source must be minimax_tts")
+    supported_providers = {
+        "MiniMax": "minimax_tts",
+        "Doubao-语音合成-2.0": "volcengine_tts",
+    }
+    expected_timing_source = supported_providers.get(timeline.get("provider"))
+    if not expected_timing_source:
+        errors.append("subtitle timeline provider is not supported")
+    elif timeline.get("timing_source") != expected_timing_source:
+        errors.append(f"timing_source must be {expected_timing_source}")
     if timeline.get("text_source") != "approved_narration":
         errors.append("text_source must be approved_narration")
-    if timeline.get("provider") != "MiniMax":
-        errors.append("subtitle timeline provider must be MiniMax")
     if not timeline.get("model"):
-        errors.append("subtitle timeline has no MiniMax model")
+        errors.append("subtitle timeline has no provider model")
     if not timeline.get("voice_id"):
-        errors.append("subtitle timeline has no MiniMax voice_id")
+        errors.append("subtitle timeline has no provider voice_id")
 
     native = timeline.get("native_subtitle")
     if not isinstance(native, dict):
-        errors.append("native MiniMax subtitle metadata is missing")
+        errors.append("native provider subtitle metadata is missing")
     else:
         native_path = root / str(native.get("file", ""))
         if not native_path.is_file():
-            errors.append(f"native MiniMax subtitle file does not exist: {native.get('file')}")
+            errors.append(f"native provider subtitle file does not exist: {native.get('file')}")
         else:
             native_digest = hashlib.sha256(native_path.read_bytes()).hexdigest()
             if native_digest != native.get("sha256"):
-                errors.append("native MiniMax subtitle SHA-256 does not match timeline")
+                errors.append("native provider subtitle SHA-256 does not match timeline")
         if native.get("format") not in {"json", "srt", "vtt"}:
-            errors.append("native MiniMax subtitle format must be json, srt or vtt")
+            errors.append("native provider subtitle format must be json, srt or vtt")
         if not isinstance(native.get("cue_count"), int) or native.get("cue_count") < 1:
-            errors.append("native MiniMax subtitle cue_count must be positive")
+            errors.append("native provider subtitle cue_count must be positive")
 
     audio_path = root / str(timeline.get("audio", ""))
     if not audio_path.is_file():
@@ -126,11 +133,14 @@ def main() -> int:
 
     images = images_doc.get("images") or []
     color_scene_ids: set[str] = set()
+    aspect_ratio = style_profile.get("aspect_ratio")
     for image in images:
         if image.get("scene_id") not in scene_ids:
             errors.append(f"image references unknown scene: {image.get('id')}")
         if image.get("fit") != "contain" or image.get("crop_allowed") is not False:
             errors.append(f"image violates no-crop contract: {image.get('id')}")
+        if isinstance(aspect_ratio, str) and aspect_ratio and aspect_ratio not in str(image.get("prompt", "")):
+            errors.append(f"image prompt has no explicit selected aspect ratio: {image.get('id')}")
         if not isinstance(image.get("width"), int) or not isinstance(image.get("height"), int):
             errors.append(f"image dimensions missing: {image.get('id')}")
         if not (root / str(image.get("file", ""))).is_file():
@@ -147,6 +157,15 @@ def main() -> int:
 
     if state.get("stage") not in {"review", "render", "qa", "completed"}:
         errors.append("workflow is not ready for rendering")
+
+    if not isinstance(style_profile.get("style_profile_version"), int):
+        errors.append("style profile has no version")
+    if not style_profile.get("style_id") or not style_profile.get("style_name"):
+        errors.append("style profile has no selected style")
+    if not aspect_ratio:
+        errors.append("style profile has no explicit aspect ratio")
+    if not style_profile.get("prompt_profile"):
+        errors.append("style profile has no image prompt profile")
 
     result = {"ok": not errors, "errors": errors}
     (root / "production-gate.json").write_text(

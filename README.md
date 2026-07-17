@@ -1,13 +1,14 @@
 # 绘画视频工作流
 
-把文章或口播文案制作成带 MiniMax 配音、准确字幕、绘本式动态插画和 Remotion 渲染成片的 Codex 插件。
+把文章或口播文案制作成带可选手绘风格、MiniMax 或 Doubao 配音、准确字幕、绘本式动态插画和 Remotion 渲染成片的 Codex 插件。
 
-当前版本：`0.2.0`
+当前版本：`0.3.0`
 
 ## 它能做什么
 
 - 把长文章压缩成适合短视频的口播文案。
-- 使用 MiniMax 生成最终配音，并读取原生字幕时间轴。
+- 每条视频先引导选择古风手绘、卡通手绘或其他自定义风格，并明确画面比例。
+- 使用 MiniMax `speech-2.8-hd` 或 Doubao `seed-tts-2.0` 生成最终配音，并读取服务商原生字幕时间轴。
 - 为每个叙事段落设计完整插画场景，而不是重复卡片模板。
 - 通过 Image Prompt Generator 生成并审核插画 Prompt。
 - 设计线稿、上色、人物或道具进入、局部动作和镜头运动。
@@ -22,9 +23,9 @@
 ## 不适合什么
 
 - 不适合一键自动发布视频。
-- 不适合跳过 MiniMax 配音和字幕校验直接估算时间轴。
+- 不适合跳过服务商配音和字幕校验直接估算时间轴。
 - 不适合把每个画面做成相同排版的卡片视频。
-- 不适合没有配置 MiniMax API Key、voice_id 或图片工作流的环境直接运行。
+- 不适合没有配置所选音频模型 API Key、默认 `voice_id` 或图片工作流的环境直接运行。
 
 ## 安装
 
@@ -50,11 +51,12 @@ codex plugin add huihua-video@huihua-video
 使用 $huihua-video，把这篇文章制作成绘本式动态视频：<文章或链接>
 ```
 
-首次使用前需要完成环境检查和 MiniMax 配置：
+首次使用时，插件会依次引导选择本条视频风格、默认音频模型和默认生图模型。音频配置可使用：
 
 ```bash
 python3 scripts/doctor.py
 python3 scripts/configure_minimax.py
+python3 scripts/configure_volcengine.py
 ```
 
 ## 插件内容
@@ -69,7 +71,7 @@ plugins/huihua-video/
 
 ## 能力边界
 
-- MiniMax 原生字幕只提供时间，不改写字幕正文。
-- MiniMax 未返回有效原生字幕文件时立即停止，不估算时间。
+- 服务商原生字幕只提供时间，不改写字幕正文。
+- MiniMax 或 Doubao 未返回有效原生字幕文件时立即停止，不估算时间。
 - 图片必须经过 `$image-prompt-generator` 的 Prompt 审核与生图批准流程。
 - 渲染前必须运行生产门禁，未通过时不得宣称视频已经完成。

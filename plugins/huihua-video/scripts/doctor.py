@@ -19,6 +19,51 @@ def config_dir() -> Path:
     return base / "huihua-video"
 
 
+def provider_check(provider: str) -> dict:
+    if provider not in {"minimax", "volcengine"}:
+        return {
+            "configured": False,
+            "api_key_configured": False,
+            "voice_id_configured": False,
+            "config_path": "",
+        }
+    path = config_dir() / f"{provider}.json"
+    configured = False
+    voice_id_configured = False
+    if path.is_file():
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(value, dict):
+                environment_key = "MINIMAX_API_KEY" if provider == "minimax" else "VOLCENGINE_TTS_API_KEY"
+                configured = bool(os.environ.get(environment_key, "").strip() or value.get("api_key"))
+                voice_id_configured = bool(value.get("voice_id"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {
+        "configured": configured and voice_id_configured,
+        "api_key_configured": configured,
+        "voice_id_configured": voice_id_configured,
+        "config_path": str(path),
+    }
+
+
+def audio_check() -> dict:
+    path = config_dir() / "audio.json"
+    provider = ""
+    if path.is_file():
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(value, dict):
+                provider = str(value.get("provider", "")).strip()
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {
+        "selected_provider": provider,
+        "selection_path": str(path),
+        "provider_configuration": provider_check(provider),
+    }
+
+
 def minimax_check() -> dict:
     path = config_dir() / "minimax.json"
     configured = False
@@ -46,19 +91,21 @@ def image_prompt_generator_check() -> dict:
 
 
 def main() -> int:
+    audio = audio_check()
     checks = {
         "node": shutil.which("node"),
         "npm": shutil.which("npm"),
         "ffmpeg": shutil.which("ffmpeg"),
         "ffprobe": shutil.which("ffprobe"),
         "python": sys.executable,
+        "audio_configuration": audio,
         "minimax_configuration": minimax_check(),
         "image_prompt_generator": image_prompt_generator_check(),
     }
     required = ("node", "npm", "ffmpeg", "ffprobe", "python")
     missing = [name for name in required if not checks[name]]
-    if not checks["minimax_configuration"]["configured"]:
-        missing.append("minimax_configuration")
+    if not audio["provider_configuration"]["configured"]:
+        missing.append("audio_configuration")
     if not checks["image_prompt_generator"]["installed"]:
         missing.append("image_prompt_generator")
     result = {
@@ -66,8 +113,8 @@ def main() -> int:
         "checks": checks,
         "missing_required": missing,
         "notes": [
-            "MiniMax is the only supported TTS provider. Configure it with scripts/configure_minimax.py.",
-            "Audition voices at https://www.minimaxi.com/audio/voices and save the exact voice_id.",
+            "Configure MiniMax with scripts/configure_minimax.py or Doubao with scripts/configure_volcengine.py.",
+            "Save an exact default voice_id after auditioning the selected provider voice library.",
             "Illustration prompts and paid generation approvals are handled by $image-prompt-generator.",
         ],
     }

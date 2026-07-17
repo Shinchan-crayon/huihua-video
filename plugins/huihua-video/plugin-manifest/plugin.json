@@ -1,7 +1,7 @@
 {
   "name": "huihua-video",
-  "version": "0.2.0",
-  "description": "将文章或口播文案制作成带 MiniMax 配音、准确字幕和绘本式动态插画的 Remotion 视频。",
+  "version": "0.3.0",
+  "description": "将文章或口播文案制作成可选古风或卡通手绘、双 TTS 配音、准确字幕和绘本式动态插画的 Remotion 视频。",
   "skills": [
     "skills/huihua-video",
     "skills/huihua-script-planner",

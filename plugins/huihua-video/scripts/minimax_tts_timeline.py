@@ -255,7 +255,11 @@ def sentence_items(
     return items
 
 
-def rhythm_points(cues: list[dict[str, Any]], items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def rhythm_points(
+    cues: list[dict[str, Any]],
+    items: list[dict[str, Any]],
+    leading_silence_seconds: float = 0.0,
+) -> list[dict[str, Any]]:
     points = [
         {"time": item["start"], "type": "sentence_start", "sentence_id": item["sentence_id"]}
         for item in items[1:]
@@ -263,7 +267,13 @@ def rhythm_points(cues: list[dict[str, Any]], items: list[dict[str, Any]]) -> li
     for previous, current in zip(cues, cues[1:]):
         gap = current["start"] - previous["end"]
         if gap >= 0.35:
-            points.append({"time": round(previous["end"], 3), "type": "pause", "duration": round(gap, 3)})
+            points.append(
+                {
+                    "time": round(previous["end"] + leading_silence_seconds, 3),
+                    "type": "pause",
+                    "duration": round(gap, 3),
+                }
+            )
     return sorted(points, key=lambda point: point["time"])
 
 
@@ -283,6 +293,7 @@ def build_timeline(
     duration: float,
     voice_id: str,
     model: str,
+    leading_silence_seconds: float = 0.0,
 ) -> dict[str, Any]:
     narration = load_narration(narration_path)
     if not audio_path.is_file() or not audio_path.read_bytes():
@@ -291,6 +302,10 @@ def build_timeline(
         raise ValueError("MiniMax 音频时长必须大于 0。")
     cues = parse_subtitle(subtitle_path)
     items = sentence_items(narration, cues)
+    if leading_silence_seconds:
+        for item in items:
+            item["start"] = round(item["start"] + leading_silence_seconds, 3)
+            item["end"] = round(item["end"] + leading_silence_seconds, 3)
     if items[-1]["end"] > duration + 0.1:
         raise ValueError("MiniMax 原生字幕超出音频时长。")
     timeline = {
@@ -302,14 +317,16 @@ def build_timeline(
         "provider": "MiniMax",
         "model": model,
         "voice_id": voice_id,
+        "leading_silence_seconds": round(leading_silence_seconds, 3),
         "native_subtitle": {
             "file": relative_to_output(subtitle_path, output_path),
             "sha256": hashlib.sha256(subtitle_path.read_bytes()).hexdigest(),
             "format": subtitle_format(subtitle_path),
             "cue_count": len(cues),
+            "time_offset_seconds": round(leading_silence_seconds, 3),
         },
         "items": items,
-        "rhythm_points": rhythm_points(cues, items),
+        "rhythm_points": rhythm_points(cues, items, leading_silence_seconds),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     write_json(output_path, timeline)
@@ -422,6 +439,48 @@ def audio_duration(path: Path) -> float:
         raise RuntimeError("FFprobe 未返回有效音频时长。") from exc
 
 
+def prepend_leading_silence(audio_path: Path, seconds: float, sample_rate: int) -> None:
+    if seconds <= 0:
+        return
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("未找到 FFmpeg，无法添加前置静默。")
+    temporary_path = audio_path.with_name(f"{audio_path.stem}.leading-silence{audio_path.suffix}")
+    completed = subprocess.run(
+        [
+            ffmpeg,
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-t",
+            f"{seconds:.3f}",
+            "-i",
+            f"anullsrc=r={sample_rate}:cl=mono",
+            "-i",
+            str(audio_path),
+            "-filter_complex",
+            "[0:a][1:a]concat=n=2:v=0:a=1[a]",
+            "-map",
+            "[a]",
+            "-ar",
+            str(sample_rate),
+            "-ac",
+            "1",
+            str(temporary_path),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0 or not temporary_path.is_file():
+        temporary_path.unlink(missing_ok=True)
+        raise RuntimeError(f"FFmpeg 无法添加前置静默：{completed.stderr.strip()}")
+    os.replace(temporary_path, audio_path)
+
+
 def build_payload(config: dict[str, Any], text: str) -> dict[str, Any]:
     return {
         "model": config["model"],
@@ -443,8 +502,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="使用 MiniMax 生成口播和原生字幕时间轴。")
     parser.add_argument("--narration", type=Path, required=True, help="已确认的 narration.json")
     parser.add_argument("--project-dir", type=Path, required=True, help="视频项目目录")
+    parser.add_argument(
+        "--leading-silence-seconds",
+        type=float,
+        default=0.0,
+        help="在最终音频前加入的静默秒数，并同步平移字幕和节奏点。",
+    )
     parser.add_argument("--dry-run", action="store_true", help="只写入无密钥请求预览")
     args = parser.parse_args()
+    if args.leading_silence_seconds < 0:
+        raise SystemExit("--leading-silence-seconds 不能小于 0。")
 
     config = load_config()
     narration = load_narration(args.narration)
@@ -465,6 +532,11 @@ def main() -> int:
             raise RuntimeError("MiniMax 返回了空音频。")
         audio_path = project / f"narration.{config['format']}"
         audio_path.write_bytes(audio)
+        prepend_leading_silence(
+            audio_path,
+            args.leading_silence_seconds,
+            int(config["sample_rate"]),
+        )
         native_path = project / "minimax-subtitles.json"
         native_path.write_bytes(download_https(subtitle_url(response), "text/*,application/json"))
         timeline = build_timeline(
@@ -475,6 +547,7 @@ def main() -> int:
             duration=audio_duration(audio_path),
             voice_id=config["voice_id"],
             model=config["model"],
+            leading_silence_seconds=args.leading_silence_seconds,
         )
     except (RuntimeError, ValueError, OSError) as exc:
         print(f"MiniMax 音频时间轴生成失败：{exc}", file=sys.stderr)

@@ -64,6 +64,18 @@ def read_voice_id(value: Optional[str]) -> str:
     return voice_id
 
 
+def write_default_provider() -> None:
+    destination = config_dir() / "audio.json"
+    temporary = destination.with_suffix(".tmp")
+    temporary.write_text(
+        json.dumps({"provider": "minimax", "model": "speech-2.8-hd"}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    os.chmod(temporary, 0o600)
+    temporary.replace(destination)
+    os.chmod(destination, 0o600)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="安全配置 huihua-video 使用的 MiniMax TTS。")
     key_source = parser.add_mutually_exclusive_group()
@@ -88,8 +100,9 @@ def main() -> int:
     os.chmod(temporary, 0o600)
     temporary.replace(destination)
     os.chmod(destination, 0o600)
+    write_default_provider()
     print(f"MiniMax 已配置完成：{destination}")
-    print("API Key 只保存在用户配置目录，不会写入视频项目或 Git 仓库。")
+    print("MiniMax 已设为默认音频模型。API Key 只保存在用户配置目录，不会写入视频项目或 Git 仓库。")
     return 0
 
 

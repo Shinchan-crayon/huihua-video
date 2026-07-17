@@ -1,7 +1,7 @@
 {
   "name": "huihua-video",
-  "version": "0.2.0",
-  "description": "将文章或口播文案制作成带 MiniMax 配音、准确字幕和绘本式动态插画的 Remotion 视频。",
+  "version": "0.3.0",
+  "description": "将文章或口播文案制作成可选古风或卡通手绘、双 TTS 配音、准确字幕和绘本式动态插画的 Remotion 视频。",
   "author": {
     "name": "ThinkAI",
     "url": "https://www.thinkai.tv"
@@ -10,8 +10,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "绘画视频",
-    "shortDescription": "从文章到配音、字幕、动态插画与成片的绘画视频工作流",
-    "longDescription": "根据文章或口播文案规划叙事场景，使用 MiniMax 原生字幕时间戳建立准确时间轴，通过 Image Prompt Generator 生成完整插画，并使用 Remotion 制作线稿显现、上色、分层景深和镜头运动。",
+    "shortDescription": "先选手绘风格与音频模型，再完成配音、字幕、动态插画与成片",
+    "longDescription": "根据文章或口播文案引导选择古风手绘或卡通手绘风格，配置 MiniMax 或 Doubao 语音合成默认音色，使用服务商原生时间戳建立准确时间轴，通过 Image Prompt Generator 生成完整插画，并使用 Remotion 制作线稿显现、上色、分层景深和镜头运动。",
     "developerName": "ThinkAI",
     "category": "Creative Tools",
     "capabilities": [
