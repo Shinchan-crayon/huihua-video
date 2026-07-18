@@ -52,6 +52,22 @@ class SkillOrderTests(unittest.TestCase):
         self.assertIn("MiniMax", description)
         self.assertIn("Doubao", description)
 
+    def test_default_flow_is_direct_delivery_without_review_or_qa_tools(self) -> None:
+        controller = (SKILLS / "00-huihua-video" / "SKILL.md").read_text(encoding="utf-8")
+        image_director = (SKILLS / "40-huihua-image-director" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        renderer = (SKILLS / "60-huihua-remotion-renderer" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("唯一默认流程", controller)
+        self.assertIn("最多 3 张并发生图", controller)
+        self.assertIn("单张最多连续重试 3 次", image_director)
+        self.assertIn("直接交付", renderer)
+        self.assertFalse((PLUGIN / "scripts" / "production_gate.py").exists())
+        self.assertFalse((PLUGIN / "scripts" / "probe_image.py").exists())
+        self.assertFalse((PLUGIN / "assets" / "workflow-state-schema.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

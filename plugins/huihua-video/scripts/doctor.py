@@ -122,8 +122,8 @@ def main() -> int:
         "notes": [
             "Configure MiniMax with scripts/configure_minimax.py or Doubao with scripts/configure_volcengine.py.",
             "Save an exact default voice_id after auditioning the selected provider voice library.",
-            "Illustration prompts and paid generation approvals are handled by $image-prompt-generator.",
-            "huihua-video does not share project state, runtime files, templates, or configuration with Shin-video.",
+            "Illustration prompts and paid generation run directly through $image-prompt-generator.",
+            "huihua-video does not share runtime files, templates, or configuration with Shin-video.",
         ],
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))

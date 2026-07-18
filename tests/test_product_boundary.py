@@ -13,11 +13,9 @@ sys.path.insert(0, str(SCRIPTS))
 from project_boundary import (  # noqa: E402
     BoundaryViolation,
     RUNTIME_NAMESPACE,
-    load_project_state,
     resolve_project_asset,
     runtime_dir,
     validate_project_root,
-    validate_state_identity,
 )
 
 
@@ -51,30 +49,7 @@ class ProductBoundaryTests(unittest.TestCase):
             with self.assertRaises(BoundaryViolation):
                 resolve_project_asset(root, "../shared/audio.mp3", "audio")
 
-    def test_requires_huihua_state_identity(self) -> None:
-        self.assertEqual(
-            validate_state_identity(
-                {
-                    "product_id": "huihua-video",
-                    "runtime_namespace": ".huihua-video-runtime",
-                }
-            ),
-            [],
-        )
-        self.assertEqual(len(validate_state_identity({"product_id": "shin-video"})), 2)
-
-    def test_load_project_state_rejects_missing_identity(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            project = Path(temporary) / "project"
-            project.mkdir()
-            (project / "workflow-state.json").write_text(
-                '{"workflow_id":"legacy"}\n',
-                encoding="utf-8",
-            )
-            with self.assertRaises(BoundaryViolation):
-                load_project_state(project)
-
-    def test_initializer_and_style_profile_share_huihua_identity(self) -> None:
+    def test_initializer_and_style_profile_use_huihua_runtime_without_state_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             project = Path(temporary) / "drawing-project"
             initializer = SCRIPTS / "initialize_huihua_project.py"
@@ -85,8 +60,6 @@ class ProductBoundaryTests(unittest.TestCase):
                     str(initializer),
                     "--project-dir",
                     str(project),
-                    "--workflow-id",
-                    "test-video",
                 ],
                 check=False,
                 capture_output=True,
@@ -101,8 +74,6 @@ class ProductBoundaryTests(unittest.TestCase):
                     str(project),
                     "--style",
                     "restrained-childrens-coloring-paper",
-                    "--aspect-ratio",
-                    "3:4",
                 ],
                 check=False,
                 capture_output=True,
@@ -111,7 +82,7 @@ class ProductBoundaryTests(unittest.TestCase):
             self.assertEqual(styled.returncode, 0, styled.stderr)
             self.assertTrue((project / RUNTIME_NAMESPACE).is_dir())
             self.assertTrue((project / "style-profile.json").is_file())
-            self.assertEqual(load_project_state(project)["product_id"], "huihua-video")
+            self.assertFalse((project / "workflow-state.json").exists())
 
 
 if __name__ == "__main__":

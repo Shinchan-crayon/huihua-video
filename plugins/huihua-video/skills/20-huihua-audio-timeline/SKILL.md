@@ -1,17 +1,17 @@
 ---
 name: huihua-audio-timeline
-description: 使用已配置的 MiniMax 或 Doubao 为已确认口播生成最终音频、原生字幕时间戳、可靠字幕时间轴和节奏点。
+description: 使用已配置的 MiniMax 或 Doubao 为最终口播生成音频、原生字幕时间戳和节奏点。
 ---
 
 # 绘画视频音频时间轴
 
 ## 产品边界
 
-仅处理 `workflow-state.json.product_id == "huihua-video"` 的当前项目。`narration.json` 必须位于同一项目目录内；不得读取或写入 Shin-video 仓库、`.shin-video-runtime` 或其配置与产物。
+`narration.json` 必须位于当前 huihua-video 项目目录内；不得读取或写入 Shin-video 仓库、`.shin-video-runtime` 或其配置与产物。
 
 ## 前置条件
 
-`narration.json` 必须存在且 `approved: true`。支持 MiniMax `speech-2.8-hd` 与 Doubao `seed-tts-2.0`，两者都必须返回可映射回已确认口播的服务商原生时间戳；不得估算缺失时间。
+`narration.json` 必须存在。支持 MiniMax `speech-2.8-hd` 与 Doubao `seed-tts-2.0`，两者都必须返回可映射回最终口播的服务商原生时间戳；不得估算缺失时间。
 
 首次使用时：
 
@@ -41,12 +41,12 @@ python3 ../../scripts/volcengine_tts_timeline.py \
   --leading-silence-seconds 1.5
 ```
 
-两个脚本都固定请求服务商原生词级字幕，并将返回的时间映射回已确认口播。
+两个脚本都固定请求服务商原生词级字幕，并将返回的时间映射回最终口播。
 
 ## 核心契约
 
 - 已选择服务商生成的最终音频是唯一计时依据。
-- 字幕正文只来自 `narration.sentences`。
+- 字幕正文只来自本次 `narration.sentences`。
 - 服务商原生字幕只提供时间，不拥有字幕正文。
 - 服务商未返回有效字幕时间戳时立即停止，不伪造时间轴。
 - 更换口播、音频、模型或 `voice_id` 后，旧 `subtitle-timeline.json` 立即失效。
@@ -60,6 +60,6 @@ python3 ../../scripts/volcengine_tts_timeline.py \
 - `minimax-subtitles.json` 或 `volcengine-subtitles.json`
 - `subtitle-timeline.json`
 
-时间轴必须包含 `timing_source`、`text_source: approved_narration`、音频 SHA-256、服务商模型、`voice_id`、原生字幕文件校验信息、字幕条目和节奏点。
+时间轴必须包含 `timing_source`、`text_source: narration`、音频 SHA-256、服务商模型、`voice_id`、原生字幕文件信息、字幕条目和节奏点。
 
 字幕可以跨场景持续显示，不能被场景 `Sequence` 截断。完整规则见 `../../references/制作规范/音频字幕契约.md`。

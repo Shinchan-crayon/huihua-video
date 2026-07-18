@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate MiniMax narration and map native subtitles to approved narration."""
+"""Generate MiniMax narration and map native subtitles to the final narration."""
 
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ from typing import Any
 
 from project_boundary import (
     BoundaryViolation,
-    load_project_state,
     resolve_project_asset,
     runtime_dir,
     validate_project_root,
@@ -77,8 +76,8 @@ def load_narration(path: Path) -> dict[str, Any]:
         narration = json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError) as exc:
         raise SystemExit(f"无法读取 narration.json：{exc}") from exc
-    if not isinstance(narration, dict) or narration.get("approved") is not True:
-        raise SystemExit("narration.json 必须存在且 approved: true。")
+    if not isinstance(narration, dict):
+        raise SystemExit("narration.json 必须是 JSON 对象。")
     sentences = narration.get("sentences")
     if not isinstance(sentences, list) or not sentences:
         raise SystemExit("narration.json 必须包含非空 sentences。")
@@ -235,7 +234,7 @@ def sentence_items(
     target = comparable(str(narration["full_text"]))
     if source != target:
         raise ValueError(
-            "MiniMax 原生字幕文字无法与已确认口播一一对应；"
+            "MiniMax 原生字幕文字无法与最终口播一一对应；"
             "为避免伪造时间轴，流程已停止。请重新生成音频。"
         )
     items: list[dict[str, Any]] = []
@@ -321,7 +320,7 @@ def build_timeline(
         "audio_sha256": hashlib.sha256(audio_path.read_bytes()).hexdigest(),
         "duration": round(duration, 3),
         "timing_source": "minimax_tts",
-        "text_source": "approved_narration",
+        "text_source": "narration",
         "provider": "MiniMax",
         "model": model,
         "voice_id": voice_id,
@@ -508,7 +507,7 @@ def build_payload(config: dict[str, Any], text: str) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="使用 MiniMax 生成口播和原生字幕时间轴。")
-    parser.add_argument("--narration", type=Path, required=True, help="已确认的 narration.json")
+    parser.add_argument("--narration", type=Path, required=True, help="最终 narration.json")
     parser.add_argument("--project-dir", type=Path, required=True, help="视频项目目录")
     parser.add_argument(
         "--leading-silence-seconds",
@@ -523,7 +522,6 @@ def main() -> int:
 
     try:
         project = validate_project_root(args.project_dir)
-        load_project_state(project)
         narration_path = resolve_project_asset(project, args.narration, "narration.json")
     except BoundaryViolation as exc:
         raise SystemExit(f"MiniMax 音频时间轴生成失败：{exc}") from exc

@@ -3,9 +3,7 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any
 
 
 PRODUCT_ID = "huihua-video"
@@ -50,7 +48,6 @@ def validate_project_root(project_dir: Path | str) -> Path:
         )
     return resolved
 
-
 def runtime_dir(project_dir: Path | str) -> Path:
     return validate_project_root(project_dir) / RUNTIME_NAMESPACE
 
@@ -71,31 +68,3 @@ def resolve_project_asset(project_dir: Path | str, reference: object, label: str
     except ValueError as exc:
         raise BoundaryViolation(f"{label} 必须位于当前 huihua-video 项目目录内。") from exc
     return resolved
-
-
-def validate_state_identity(state: dict[str, object]) -> list[str]:
-    errors: list[str] = []
-    if state.get("product_id") != PRODUCT_ID:
-        errors.append(f"workflow-state.json product_id must be {PRODUCT_ID}")
-    if state.get("runtime_namespace") != RUNTIME_NAMESPACE:
-        errors.append(f"workflow-state.json runtime_namespace must be {RUNTIME_NAMESPACE}")
-    return errors
-
-
-def load_project_state(project_dir: Path | str) -> dict[str, Any]:
-    root = validate_project_root(project_dir)
-    path = root / "workflow-state.json"
-    if not path.is_file():
-        raise BoundaryViolation(
-            "缺少 workflow-state.json；请先运行 scripts/initialize_huihua_project.py 初始化独立项目。"
-        )
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise BoundaryViolation(f"无法读取有效的 workflow-state.json：{exc}") from exc
-    if not isinstance(value, dict):
-        raise BoundaryViolation("workflow-state.json 必须是 JSON 对象。")
-    errors = validate_state_identity(value)
-    if errors:
-        raise BoundaryViolation("；".join(errors))
-    return value

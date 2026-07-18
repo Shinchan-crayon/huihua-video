@@ -1,7 +1,7 @@
 {
   "name": "huihua-video",
   "version": "0.3.2",
-  "description": "将文章或口播文案制作成可选古风或卡通手绘、双 TTS 配音、准确字幕和绘本式动态插画的独立 Remotion 视频工作流。",
+  "description": "将选题、文章或口播直接制作成双 TTS 配音、准确字幕和绘本式动态插画的独立 Remotion 视频工作流。",
   "skills": [
     "skills/00-huihua-video",
     "skills/10-huihua-script-planner",

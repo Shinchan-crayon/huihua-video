@@ -11,8 +11,7 @@ export type ImageAsset = {
   scene_id: string;
   file: string;
   role: "color" | "line" | "foreground" | "midground" | "background" | "detail";
-  width: number;
-  height: number;
+  aspect_ratio: string;
   fit: "contain";
   crop_allowed: false;
   prompt: string;
@@ -44,6 +43,8 @@ export type HuihuaVideoProps = {
   audio: string;
   duration: number;
   fps?: number;
+  width?: number;
+  height?: number;
   backgroundColor?: string;
   scenes: Scene[];
   images: ImageAsset[];

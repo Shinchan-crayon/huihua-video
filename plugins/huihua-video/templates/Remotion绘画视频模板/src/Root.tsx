@@ -7,6 +7,8 @@ const defaultProps: HuihuaVideoProps = {
   audio: "runtime/narration.mp3",
   duration: 10,
   fps: 30,
+  width: 960,
+  height: 1280,
   backgroundColor: "#f6f0e6",
   scenes: [],
   images: [],
@@ -25,9 +27,8 @@ export const Root: React.FC = () => {
       height={1280}
       defaultProps={defaultProps}
       calculateMetadata={({props}) => {
-        const firstColor = props.images.find((image) => image.role === "color");
-        const width = firstColor?.width ?? 960;
-        const height = firstColor?.height ?? 1280;
+        const width = props.width ?? 960;
+        const height = props.height ?? 1280;
         const fps = props.fps ?? 30;
         return {
           width,

@@ -10,7 +10,6 @@ import sys
 from project_boundary import (
     BoundaryViolation,
     RUNTIME_NAMESPACE,
-    load_project_state,
     validate_project_root,
 )
 
@@ -35,12 +34,8 @@ def main() -> int:
         return 2
     try:
         root = validate_project_root(pathlib.Path(sys.argv[1]))
-        load_project_state(root)
     except BoundaryViolation as exc:
         print(f"Refusing cleanup: {exc}", file=sys.stderr)
-        return 1
-    if not (root / "production-gate.json").is_file():
-        print("Refusing cleanup before production-gate.json exists.", file=sys.stderr)
         return 1
     for path in list(root.rglob("*")):
         if path.name in TRANSIENT_NAMES or path.suffix.lower() in {".tmp", ".log"}:

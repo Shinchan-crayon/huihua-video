@@ -1,10 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["title", "approved", "language", "full_text", "sentences"],
+  "required": ["title", "language", "full_text", "sentences"],
   "properties": {
     "title": {"type": "string", "minLength": 1},
-    "approved": {"type": "boolean"},
     "language": {"type": "string", "minLength": 2},
     "full_text": {"type": "string", "minLength": 1},
     "sentences": {

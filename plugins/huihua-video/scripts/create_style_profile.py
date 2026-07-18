@@ -8,7 +8,7 @@ import json
 import re
 from pathlib import Path
 
-from project_boundary import BoundaryViolation, load_project_state, runtime_dir, validate_project_root
+from project_boundary import BoundaryViolation, runtime_dir, validate_project_root
 
 
 ASPECT_RATIO = re.compile(r"^(?P<width>[1-9]\d*):(?P<height>[1-9]\d*)$")
@@ -42,7 +42,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="创建绘画视频的风格档案。")
     parser.add_argument("--project-dir", type=Path, required=True)
     parser.add_argument("--style", choices=(*PRESETS.keys(), "custom"), required=True)
-    parser.add_argument("--aspect-ratio", required=True, help="用户确认的画面比例，例如 3:4。")
+    parser.add_argument("--aspect-ratio", default="3:4", help="画面比例，默认 3:4。")
     parser.add_argument("--custom-name", help="选择 custom 时的风格名称。")
     parser.add_argument("--custom-prompt-profile", help="选择 custom 时的完整生图风格约束。")
     parser.add_argument("--custom-notes", default="", help="选择 custom 时的补充说明。")
@@ -64,7 +64,6 @@ def main() -> int:
 
     try:
         project = validate_project_root(args.project_dir)
-        load_project_state(project)
     except BoundaryViolation as exc:
         raise SystemExit(f"无法创建 huihua-video 风格档案：{exc}") from exc
     project.mkdir(parents=True, exist_ok=True)

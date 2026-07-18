@@ -1,6 +1,6 @@
 interface:
   display_name: "绘画视频渲染"
-  short_description: "校验生产产物并使用自适应Remotion模板渲染和检查成片"
-  default_prompt: "使用 $huihua-remotion-renderer 校验并渲染这个绘画视频项目。"
+  short_description: "使用自适应 Remotion 模板直接渲染并交付 MP4"
+  default_prompt: "使用 $huihua-remotion-renderer 直接渲染并交付这个绘画视频项目。"
 policy:
   allow_implicit_invocation: false

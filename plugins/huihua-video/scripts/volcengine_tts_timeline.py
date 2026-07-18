@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Doubao TTS narration and map native word timings to approved narration."""
+"""Generate Doubao TTS narration and map native word timings to the final narration."""
 
 from __future__ import annotations
 
@@ -28,7 +28,6 @@ from minimax_tts_timeline import (
 )
 from project_boundary import (
     BoundaryViolation,
-    load_project_state,
     resolve_project_asset,
     runtime_dir,
     validate_project_root,
@@ -211,7 +210,7 @@ def sentence_items(narration: dict[str, Any], cues: list[dict[str, Any]]) -> lis
     flattened = "".join(compact(item["text"]) for item in cues)
     expected = compact(str(narration["full_text"]))
     if flattened != expected:
-        raise RuntimeError("Doubao 原生字幕文字无法与已确认口播一一对应；流程已停止。")
+        raise RuntimeError("Doubao 原生字幕文字无法与最终口播一一对应；流程已停止。")
     items: list[dict[str, Any]] = []
     cursor = 0
     for index, sentence in enumerate(narration["sentences"], start=1):
@@ -243,7 +242,7 @@ def sentence_items(narration: dict[str, Any], cues: list[dict[str, Any]]) -> lis
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="使用 Doubao 生成口播和原生字幕时间轴。")
-    parser.add_argument("--narration", type=Path, required=True, help="已确认的 narration.json")
+    parser.add_argument("--narration", type=Path, required=True, help="最终 narration.json")
     parser.add_argument("--project-dir", type=Path, required=True, help="视频项目目录")
     parser.add_argument(
         "--leading-silence-seconds",
@@ -258,7 +257,6 @@ def main() -> int:
 
     try:
         project = validate_project_root(args.project_dir)
-        load_project_state(project)
         narration_path = resolve_project_asset(project, args.narration, "narration.json")
     except BoundaryViolation as exc:
         raise SystemExit(f"Doubao 音频时间轴生成失败：{exc}") from exc
@@ -338,7 +336,7 @@ def main() -> int:
             "audio_sha256": hashlib.sha256(audio_path.read_bytes()).hexdigest(),
             "duration": round(duration, 3),
             "timing_source": "volcengine_tts",
-            "text_source": "approved_narration",
+            "text_source": "narration",
             "provider": "Doubao-语音合成-2.0",
             "model": config["resource_id"],
             "voice_id": config["voice_id"],

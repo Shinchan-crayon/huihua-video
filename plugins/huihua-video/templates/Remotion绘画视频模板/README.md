@@ -7,6 +7,8 @@
   "audio": "runtime/narration.mp3",
   "duration": 10,
   "fps": 30,
+  "width": 960,
+  "height": 1280,
   "scenes": [],
   "images": [],
   "motion": [],
@@ -14,7 +16,7 @@
 }
 ```
 
-图片路径相对于 `public/`。首张 `role: color` 图片的实际宽高用于确定输出画布，所有图片使用 `contain` 完整显示。
+图片路径相对于 `public/`。`width` 和 `height` 根据 `style-profile.json.aspect_ratio` 设置，所有图片使用 `contain` 完整显示。
 
 ```bash
 npm install
