@@ -23,7 +23,6 @@ from typing import Any
 from project_boundary import (
     BoundaryViolation,
     resolve_project_asset,
-    runtime_dir,
     validate_project_root,
 )
 
@@ -32,8 +31,6 @@ TIMESTAMP = re.compile(
     r"(?P<start>\d{1,2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*"
     r"(?P<end>\d{1,2}:\d{2}:\d{2}[,.]\d{3})"
 )
-SECRET_FIELD = re.compile(r"(api[_-]?key|authorization|token|secret|password)", re.IGNORECASE)
-INLINE_AUDIO_FIELD = re.compile(r"^(audio|audio_data)$", re.IGNORECASE)
 JSON_START_KEYS = ("time_begin", "begin_time", "start_time", "start")
 JSON_END_KEYS = ("time_end", "end_time", "finish_time", "end")
 JSON_TEXT_KEYS = ("text", "subtitle", "content", "word")
@@ -100,18 +97,6 @@ def comparable(text: str) -> str:
         for character in text
         if unicodedata.category(character)[0] in {"L", "N"}
     )
-
-
-def sanitize(value: Any, key: str = "") -> Any:
-    if SECRET_FIELD.search(key):
-        return "[REDACTED]"
-    if INLINE_AUDIO_FIELD.fullmatch(key) and isinstance(value, str) and len(value) > 256:
-        return "[REDACTED_INLINE_AUDIO]"
-    if isinstance(value, dict):
-        return {name: sanitize(item, name) for name, item in value.items()}
-    if isinstance(value, list):
-        return [sanitize(item, key) for item in value]
-    return value
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -515,7 +500,7 @@ def main() -> int:
         default=0.0,
         help="在最终音频前加入的静默秒数，并同步平移字幕和节奏点。",
     )
-    parser.add_argument("--dry-run", action="store_true", help="只写入无密钥请求预览")
+    parser.add_argument("--dry-run", action="store_true", help="只在标准输出打印无密钥请求预览")
     args = parser.parse_args()
     if args.leading_silence_seconds < 0:
         raise SystemExit("--leading-silence-seconds 不能小于 0。")
@@ -528,18 +513,18 @@ def main() -> int:
     config = load_config()
     narration = load_narration(narration_path)
     project.mkdir(parents=True, exist_ok=True)
-    transient_dir = runtime_dir(project)
-    transient_dir.mkdir(parents=True, exist_ok=True)
     payload = build_payload(config, narration["full_text"])
-    request_path = transient_dir / "minimax-request.json"
-    write_json(request_path, {"api_url": config["api_url"], "payload": payload})
     if args.dry_run:
-        print(json.dumps({"status": "dry_run", "request": str(request_path)}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"status": "dry_run", "api_url": config["api_url"], "payload": payload},
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     try:
         response = post_json(config["api_url"], config["api_key"], payload)
-        write_json(transient_dir / "minimax-response.json", sanitize(response))
         audio = extract_audio(response)
         if not audio:
             raise RuntimeError("MiniMax 返回了空音频。")

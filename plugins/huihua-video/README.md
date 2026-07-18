@@ -22,8 +22,8 @@
 → 最终音频
 → 服务商原生字幕时间轴
 → 绘画场景
-→ Prompt 固定写入比例
-→ Image Prompt Generator 每批最多 3 张并发生图
+→ Prompt 直接生成并固定写入比例
+→ 默认生图模型每批最多 3 张并发生图
 → 线稿与图层素材
 → 动效方案
 → Remotion 渲染
@@ -44,7 +44,7 @@
 | `huihua-script-planner` | 整理文章并直接生成最终口播与叙事节拍 |
 | `huihua-audio-timeline` | 使用已选 MiniMax 或 Doubao 生成最终音频和原生字幕时间轴 |
 | `huihua-scene-designer` | 将口播拆成连续发展的绘画场景 |
-| `huihua-image-director` | 调用 `$image-prompt-generator` 规划并生成完整插画 |
+| `huihua-image-director` | 直接生成 Prompt，并调用默认生图模型生成完整插画 |
 | `huihua-motion-director` | 设计线稿、上色、分层、局部动作和镜头运动 |
 | `huihua-remotion-renderer` | 直接渲染 MP4 并整理交付目录 |
 
@@ -54,13 +54,7 @@
 - FFmpeg 与 FFprobe
 - MiniMax API Key 或火山引擎 API Key
 - 从音色库试听并复制的完整 `voice_id`
-- 已安装的 `$image-prompt-generator`
-
-尚未安装图片工作流时，在 Codex 中安装：
-
-```text
-请从 https://github.com/Shinchan-crayon/image-prompt-generator 安装 image-prompt-generator Skill。
-```
+- 当前智能体中已配置且可直接调用的默认生图 Skill、连接器或模型
 
 运行环境检查：
 
@@ -97,7 +91,7 @@ python3 scripts/configure_volcengine.py
 
 配置脚本通过隐藏输入接收 API Key，保存默认 `voice_id` 到用户配置目录，不会写入视频项目或 Git。
 
-绘画场景的 Prompt 和生图统一调用 `$image-prompt-generator`。完成首次配置后直接使用默认图片渠道；图片渠道使用自己的密钥，不复用音频模型 API Key。用户调用 `$huihua-video` 即授权本次 Prompt、付费生图和自动重试。
+绘画场景的 Prompt 由 `$huihua-image-director` 直接生成，并发送给已配置的默认生图能力。图片渠道使用自己的密钥，不复用音频模型 API Key。用户调用 `$huihua-video` 即授权本次 Prompt、付费生图和自动重试；正常生产不得插入 Prompt 审核、批准哈希、人工确认或状态台账。
 
 ## GitHub 安装
 
@@ -139,7 +133,8 @@ codex plugin add huihua-video@huihua-video
 - 服务商原生字幕只提供时间，不改写字幕正文。
 - MiniMax 或 Doubao 未返回有效原生字幕时间戳时立即停止，不估算时间。
 - 每条 Prompt 固定写入 `style-profile.json.aspect_ratio`；未指定时使用 `3:4`。
-- 生图每批最多并发 3 张，单张失败自动重试 3 次。
+- 生图每批最多并发 3 张；当前批次全部返回后再开始下一批。
+- 单张图片首次失败后自动重试 3 次，三次重试均未返回图片时才报告错误。
 - 不展示或复审 Prompt，不再次询问生图批准。
 - 主画面负责解释和叙事，不重复整句字幕。
 - 禁止为了“有动态”添加抖动、噪点或无意义漂移。

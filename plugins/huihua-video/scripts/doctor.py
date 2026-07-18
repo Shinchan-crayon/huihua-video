@@ -86,12 +86,6 @@ def minimax_check() -> dict:
     }
 
 
-def image_prompt_generator_check() -> dict:
-    codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).expanduser()
-    path = codex_home / "skills" / "image-prompt-generator" / "SKILL.md"
-    return {"installed": path.is_file(), "skill_path": str(path)}
-
-
 def main() -> int:
     audio = audio_check()
     checks = {
@@ -102,7 +96,6 @@ def main() -> int:
         "python": sys.executable,
         "audio_configuration": audio,
         "minimax_configuration": minimax_check(),
-        "image_prompt_generator": image_prompt_generator_check(),
         "product_boundary": {
             "product_id": PRODUCT_ID,
             "runtime_namespace": RUNTIME_NAMESPACE,
@@ -113,8 +106,6 @@ def main() -> int:
     missing = [name for name in required if not checks[name]]
     if not audio["provider_configuration"]["configured"]:
         missing.append("audio_configuration")
-    if not checks["image_prompt_generator"]["installed"]:
-        missing.append("image_prompt_generator")
     result = {
         "ok": not missing,
         "checks": checks,
@@ -122,7 +113,7 @@ def main() -> int:
         "notes": [
             "Configure MiniMax with scripts/configure_minimax.py or Doubao with scripts/configure_volcengine.py.",
             "Save an exact default voice_id after auditioning the selected provider voice library.",
-            "Illustration prompts and paid generation run directly through $image-prompt-generator.",
+            "huihua-image-director generates prompts and directly calls the agent's configured image provider.",
             "huihua-video does not share runtime files, templates, or configuration with Shin-video.",
         ],
     }

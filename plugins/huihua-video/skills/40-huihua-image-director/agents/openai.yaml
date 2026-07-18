@@ -1,6 +1,6 @@
 interface:
   display_name: "绘画视频插画导演"
-  short_description: "调用 Image Prompt Generator 并发生成完整叙事插画"
-  default_prompt: "使用 $huihua-image-director 和 $image-prompt-generator 为这些场景直接生成完整插画。"
+  short_description: "直接生成 Prompt 并调用默认生图模型生成叙事插画"
+  default_prompt: "使用 $huihua-image-director 为这些场景直接生成 Prompt，并调用已配置的默认生图模型生成完整插画。"
 policy:
   allow_implicit_invocation: false

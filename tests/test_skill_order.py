@@ -62,11 +62,24 @@ class SkillOrderTests(unittest.TestCase):
         )
         self.assertIn("唯一默认流程", controller)
         self.assertIn("最多 3 张并发生图", controller)
-        self.assertIn("单张最多连续重试 3 次", image_director)
+        self.assertIn("自动重新生成最多 3 次", image_director)
         self.assertIn("直接交付", renderer)
+        self.assertNotIn("$image-prompt-generator", controller)
+        self.assertNotIn("$image-prompt-generator", image_director)
         self.assertFalse((PLUGIN / "scripts" / "production_gate.py").exists())
         self.assertFalse((PLUGIN / "scripts" / "probe_image.py").exists())
         self.assertFalse((PLUGIN / "assets" / "workflow-state-schema.json").exists())
+
+    def test_tts_runtime_does_not_write_request_or_response_logs(self) -> None:
+        minimax = (PLUGIN / "scripts" / "minimax_tts_timeline.py").read_text(
+            encoding="utf-8"
+        )
+        volcengine = (PLUGIN / "scripts" / "volcengine_tts_timeline.py").read_text(
+            encoding="utf-8"
+        )
+        for source in (minimax, volcengine):
+            self.assertNotIn("-request.json", source)
+            self.assertNotIn("-response.json", source)
 
 
 if __name__ == "__main__":

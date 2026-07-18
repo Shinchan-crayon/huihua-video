@@ -15,6 +15,7 @@ from project_boundary import (
 
 
 TRANSIENT_NAMES = {
+    ".DS_Store",
     ".cache",
     ".remotion",
     "_frames",
@@ -24,6 +25,8 @@ TRANSIENT_NAMES = {
     "minimax-request.json",
     "minimax-response.json",
     "preview-sheet",
+    "volcengine-request.json",
+    "volcengine-response.json",
     RUNTIME_NAMESPACE,
 }
 

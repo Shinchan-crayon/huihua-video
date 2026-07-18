@@ -11,7 +11,7 @@
   "interface": {
     "displayName": "绘画视频",
     "shortDescription": "一句话直出配音、字幕、动态插画与 MP4 成片",
-    "longDescription": "作为独立于 Shin-video 的绘画视频工作流，使用已配置的默认 MiniMax 或 Doubao 音色与默认生图模型，自动确定手绘风格和画面比例，生成原生字幕时间轴，通过 Image Prompt Generator 并发生成完整插画，并在图片返回后直接使用自带 Remotion 模板渲染交付。",
+    "longDescription": "作为独立于 Shin-video 的绘画视频工作流，使用已配置的默认 MiniMax 或 Doubao 音色与默认生图模型，自动确定手绘风格和画面比例，直接生成 Prompt，以每批最多 3 张并发生图，单图失败自动重试 3 次，图片全部返回后立即使用自带 Remotion 模板渲染并交付 MP4。",
     "developerName": "ThinkAI",
     "category": "Creative Tools",
     "capabilities": [

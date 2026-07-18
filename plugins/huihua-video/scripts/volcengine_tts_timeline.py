@@ -29,13 +29,11 @@ from minimax_tts_timeline import (
 from project_boundary import (
     BoundaryViolation,
     resolve_project_asset,
-    runtime_dir,
     validate_project_root,
 )
 
 
 EVENT_SEPARATOR = re.compile(r"\r?\n\r?\n")
-SECRET_FIELD = re.compile(r"(api[_-]?key|authorization|token|secret|password)", re.IGNORECASE)
 KNOWN_EVENTS = {152, 153, 351, 352}
 
 
@@ -71,16 +69,6 @@ def load_config() -> dict[str, Any]:
     if config["format"] not in {"mp3", "wav"}:
         raise SystemExit("huihua-video 仅支持 Doubao 输出 mp3 或 wav。")
     return config
-
-
-def sanitize(value: Any, key: str = "") -> Any:
-    if SECRET_FIELD.search(key):
-        return "[REDACTED]"
-    if isinstance(value, dict):
-        return {name: sanitize(item, name) for name, item in value.items()}
-    if isinstance(value, list):
-        return [sanitize(item, key) for item in value]
-    return value
 
 
 def redact_secret(value: str, api_key: str) -> str:
@@ -250,7 +238,7 @@ def main() -> int:
         default=0.0,
         help="在最终音频前加入的静默秒数，并同步平移字幕和节奏点。",
     )
-    parser.add_argument("--dry-run", action="store_true", help="只写入无密钥请求预览")
+    parser.add_argument("--dry-run", action="store_true", help="只在标准输出打印无密钥请求预览")
     args = parser.parse_args()
     if args.leading_silence_seconds < 0:
         raise SystemExit("--leading-silence-seconds 不能小于 0。")
@@ -263,18 +251,14 @@ def main() -> int:
     config = load_config()
     narration = load_narration(narration_path)
     project.mkdir(parents=True, exist_ok=True)
-    transient_dir = runtime_dir(project)
-    transient_dir.mkdir(parents=True, exist_ok=True)
     request_preview = {
         "api_url": config["api_url"],
         "resource_id": config["resource_id"],
         "voice_id": config["voice_id"],
         "subtitle_enabled": True,
     }
-    request_path = transient_dir / "volcengine-request.json"
-    write_json(request_path, request_preview)
     if args.dry_run:
-        print(json.dumps({"status": "dry_run", "request": str(request_path)}, ensure_ascii=False))
+        print(json.dumps({"status": "dry_run", "request": request_preview}, ensure_ascii=False))
         return 0
 
     try:
@@ -282,12 +266,7 @@ def main() -> int:
         audio_chunks: list[bytes] = []
         cues: list[dict[str, Any]] = []
         completed = False
-        safe_events: list[dict[str, Any]] = []
         for event, payload in events:
-            safe_payload = sanitize(payload)
-            if event == 352 and isinstance(safe_payload, dict):
-                safe_payload["data"] = "[REDACTED_INLINE_AUDIO]"
-            safe_events.append({"event": event, "data": safe_payload})
             if completed:
                 continue
             if event == 352:
@@ -302,7 +281,6 @@ def main() -> int:
             elif event == 153:
                 message = redact_secret(str(payload.get("message") or "Doubao 音频生成失败"), str(config["api_key"]))
                 raise RuntimeError(message)
-        write_json(transient_dir / "volcengine-response.json", {"events": safe_events})
         if not completed:
             raise RuntimeError("Doubao 事件流缺少完成帧。")
         if not audio_chunks:
