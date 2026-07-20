@@ -70,6 +70,21 @@ class SkillOrderTests(unittest.TestCase):
         self.assertFalse((PLUGIN / "scripts" / "probe_image.py").exists())
         self.assertFalse((PLUGIN / "assets" / "workflow-state-schema.json").exists())
 
+    def test_controller_defaults_to_finished_output_mode(self) -> None:
+        controller = (SKILLS / "00-huihua-video" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("默认模式：成品执行模式", controller)
+        self.assertIn("只有当前请求明确要求修改、开发、测试或发布 `huihua-video` 插件源码", controller)
+        self.assertIn("运行失败不得切换为开发模式", controller)
+        self.assertIn("当前工作目录位于插件仓库", controller)
+
+        manifest = json.loads(
+            (PLUGIN / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            "使用 $huihua-video，自由发挥并直接交付 MP4。",
+            manifest["interface"]["defaultPrompt"],
+        )
+
     def test_tts_runtime_does_not_write_request_or_response_logs(self) -> None:
         minimax = (PLUGIN / "scripts" / "minimax_tts_timeline.py").read_text(
             encoding="utf-8"

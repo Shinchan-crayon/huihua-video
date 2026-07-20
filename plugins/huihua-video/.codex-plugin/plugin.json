@@ -20,6 +20,7 @@
       "Remotion rendering"
     ],
     "defaultPrompt": [
+      "使用 $huihua-video，自由发挥并直接交付 MP4。",
       "使用 $huihua-video 把这篇文章制作成绘本式动态视频。",
       "使用 $huihua-video 根据这段口播，用已选择的音频模型生成配音和绘画视频。",
       "使用 $huihua-video 继续这个绘画视频项目并直接交付 MP4。"
